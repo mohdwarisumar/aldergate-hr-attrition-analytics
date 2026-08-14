@@ -1,0 +1,29 @@
+{
+  "name": "Aldergate Financial Group",
+  "dataColors": [
+    "#2C3E5C",
+    "#8A6D3B",
+    "#5B7A8C",
+    "#B08B57",
+    "#3E5670",
+    "#9C7A45",
+    "#6E8494",
+    "#4A6280"
+  ],
+  "background": "#FAFAF9",
+  "foreground": "#22262E",
+  "tableAccent": "#2C3E5C",
+  "good": "#2E6B4F",
+  "bad": "#A6483A",
+  "neutral": "#8A6D3B",
+  "maximum": "#2C3E5C",
+  "center": "#DCD6C9",
+  "minimum": "#FAFAF9",
+  "null": "#C9C4B8",
+  "textClasses": {
+    "callout": { "fontSize": 32, "fontFace": "Segoe UI Semibold" },
+    "title": { "fontSize": 14, "fontFace": "Segoe UI Semibold", "color": "#22262E" },
+    "header": { "fontSize": 12, "fontFace": "Segoe UI", "color": "#22262E" },
+    "label": { "fontSize": 10, "fontFace": "Segoe UI", "color": "#5B5F66" }
+  }
+}

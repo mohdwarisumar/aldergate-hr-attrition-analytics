@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aldergate Financial Group — Workforce Analytics</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f7f7f6;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --good:           #006300;
+    --bad:            #d03b3b;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page-plane); color: var(--text-primary); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+  header.page-head { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+  header.page-head h1 { font-size: 21px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header.page-head p { margin: 0; color: var(--text-secondary); font-size: 13px; }
+  .asof { font-size: 12px; color: var(--text-muted); text-align:right; }
+  .kpi-row { display:grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 22px; }
+  .kpi-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi-card .label { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+  .kpi-card .value { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  .grid-2 { display:grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+  figure.chart-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px 12px; margin: 0; }
+  figure.chart-card .chart-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 10px; }
+  figure.chart-card h2 { font-size: 13px; font-weight: 600; margin: 0; }
+  figure.chart-card .insight { font-size: 11.5px; color: var(--text-secondary); margin: 2px 0 0; max-width: 60ch; }
+  .table-toggle { font-size: 11px; color: var(--text-secondary); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; cursor: pointer; white-space: nowrap; }
+  .table-toggle:hover { background: var(--page-plane); }
+  .legend { display:flex; gap: 14px; flex-wrap: wrap; margin: 8px 0 0; font-size: 11.5px; color: var(--text-secondary); }
+  .legend .item { display:flex; align-items:center; gap: 6px; }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 2px; display:inline-block; }
+  svg text { fill: var(--text-muted); font-size: 10.5px; font-family: system-ui, sans-serif; }
+  .bar-label { fill: var(--text-primary) !important; font-size: 11px !important; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .axis-line { stroke: var(--baseline); stroke-width: 1; }
+  .tooltip { position: absolute; pointer-events:none; background: #232320; color: #fff; font-size: 11.5px; padding: 6px 10px; border-radius: 6px; line-height: 1.5; opacity: 0; transition: opacity .08s; z-index: 10; white-space: nowrap; }
+  table.data-table { width:100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; display:none; }
+  table.data-table.show { display: table; }
+  table.data-table th, table.data-table td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--grid); }
+  table.data-table th { color: var(--text-secondary); font-weight: 600; }
+  .chart-svg-wrap.hide { display:none; }
+  footer.foot { margin-top: 28px; font-size: 11.5px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px; }
+  @media (max-width: 880px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+
+  <header class="page-head">
+    <div>
+      <h1>Aldergate Financial Group — Workforce Analytics</h1>
+      <p>7 departments · Jan 2021 – Jul 2026</p>
+    </div>
+    <div class="asof">Data as of 31 Jul 2026 · SQLite → Power BI pipeline</div>
+  </header>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="grid-2">
+    <figure class="chart-card">
+      <div class="chart-head">
+        <div><h2>Headcount trend</h2>
+        <p class="insight">Net growth of ~19% since 2021, despite a hiring slowdown in H2 2023.</p></div>
+        <button class="table-toggle" data-target="t-headcount">View as table</button>
+      </div>
+      <div class="chart-svg-wrap" id="c-headcount"></div>
+      <table class="data-table" id="t-headcount"></table>
+    </figure>
+
+    <figure class="chart-card">
+      <div class="chart-head">
+        <div><h2>Attrition rate by department</h2>
+        <p class="insight">Sales &amp; Client Services turn over roughly twice as fast as Risk &amp; Compliance.</p></div>
+        <button class="table-toggle" data-target="t-dept">View as table</button>
+      </div>
+      <div class="chart-svg-wrap" id="c-dept"></div>
+      <table class="data-table" id="t-dept"></table>
+    </figure>
+  </div>
+
+  <div class="grid-3">
+    <figure class="chart-card">
+      <div class="chart-head"><div><h2>Departures by tenure</h2></div><button class="table-toggle" data-target="t-tenure">Table</button></div>
+      <div class="chart-svg-wrap" id="c-tenure"></div>
+      <table class="data-table" id="t-tenure"></table>
+    </figure>
+    <figure class="chart-card">
+      <div class="chart-head"><div><h2>Attrition by satisfaction band</h2></div><button class="table-toggle" data-target="t-sat">Table</button></div>
+      <div class="chart-svg-wrap" id="c-sat"></div>
+      <table class="data-table" id="t-sat"></table>
+    </figure>
+    <figure class="chart-card">
+      <div class="chart-head"><div><h2>Promotion vs. retention</h2></div><button class="table-toggle" data-target="t-promo">Table</button></div>
+      <div class="chart-svg-wrap" id="c-promo"></div>
+      <table class="data-table" id="t-promo"></table>
+    </figure>
+  </div>
+
+  <figure class="chart-card" style="margin-bottom:14px;">
+    <div class="chart-head">
+      <div><h2>Overtime as an attrition risk factor, by department</h2>
+      <p class="insight">Overtime raises attrition risk within nearly every department — it's not just that high-turnover teams happen to work more overtime.</p></div>
+      <button class="table-toggle" data-target="t-overtime">View as table</button>
+    </div>
+    <div class="chart-svg-wrap" id="c-overtime"></div>
+    <div class="legend" id="l-overtime"></div>
+    <table class="data-table" id="t-overtime"></table>
+  </figure>
+
+  <footer class="foot">
+    Synthetic dataset generated for portfolio purposes — Aldergate Financial Group is a fictitious company; no real personnel data is used. Backing SQL and Power BI build guide in the same project folder. Built by Mohammad Waris.
+  </footer>
+
+</div>
+</div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = {"headcount_trend": [{"period": "2021-01", "headcount": 1159}, {"period": "2021-02", "headcount": 1166}, {"period": "2021-03", "headcount": 1164}, {"period": "2021-04", "headcount": 1173}, {"period": "2021-05", "headcount": 1176}, {"period": "2021-06", "headcount": 1179}, {"period": "2021-07", "headcount": 1188}, {"period": "2021-08", "headcount": 1188}, {"period": "2021-09", "headcount": 1185}, {"period": "2021-10", "headcount": 1202}, {"period": "2021-11", "headcount": 1206}, {"period": "2021-12", "headcount": 1211}, {"period": "2022-01", "headcount": 1212}, {"period": "2022-02", "headcount": 1221}, {"period": "2022-03", "headcount": 1229}, {"period": "2022-04", "headcount": 1230}, {"period": "2022-05", "headcount": 1233}, {"period": "2022-06", "headcount": 1239}, {"period": "2022-07", "headcount": 1238}, {"period": "2022-08", "headcount": 1244}, {"period": "2022-09", "headcount": 1249}, {"period": "2022-10", "headcount": 1247}, {"period": "2022-11", "headcount": 1257}, {"period": "2022-12", "headcount": 1268}, {"period": "2023-01", "headcount": 1272}, {"period": "2023-02", "headcount": 1275}, {"period": "2023-03", "headcount": 1282}, {"period": "2023-04", "headcount": 1278}, {"period": "2023-05", "headcount": 1293}, {"period": "2023-06", "headcount": 1301}, {"period": "2023-07", "headcount": 1299}, {"period": "2023-08", "headcount": 1292}, {"period": "2023-09", "headcount": 1284}, {"period": "2023-10", "headcount": 1272}, {"period": "2023-11", "headcount": 1260}, {"period": "2023-12", "headcount": 1259}, {"period": "2024-01", "headcount": 1265}, {"period": "2024-02", "headcount": 1269}, {"period": "2024-03", "headcount": 1267}, {"period": "2024-04", "headcount": 1265}, {"period": "2024-05", "headcount": 1270}, {"period": "2024-06", "headcount": 1277}, {"period": "2024-07", "headcount": 1286}, {"period": "2024-08", "headcount": 1291}, {"period": "2024-09", "headcount": 1296}, {"period": "2024-10", "headcount": 1305}, {"period": "2024-11", "headcount": 1307}, {"period": "2024-12", "headcount": 1312}, {"period": "2025-01", "headcount": 1316}, {"period": "2025-02", "headcount": 1318}, {"period": "2025-03", "headcount": 1319}, {"period": "2025-04", "headcount": 1315}, {"period": "2025-05", "headcount": 1311}, {"period": "2025-06", "headcount": 1316}, {"period": "2025-07", "headcount": 1316}, {"period": "2025-08", "headcount": 1330}, {"period": "2025-09", "headcount": 1336}, {"period": "2025-10", "headcount": 1333}, {"period": "2025-11", "headcount": 1338}, {"period": "2025-12", "headcount": 1341}, {"period": "2026-01", "headcount": 1340}, {"period": "2026-02", "headcount": 1350}, {"period": "2026-03", "headcount": 1351}, {"period": "2026-04", "headcount": 1355}, {"period": "2026-05", "headcount": 1362}, {"period": "2026-06", "headcount": 1368}, {"period": "2026-07", "headcount": 1366}], "attrition_by_dept": [{"department_name": "Sales & Business Dev", "ever_employed": 273, "currently_active": 153, "total_left": 120, "attrition_rate_pct": 44.0}, {"department_name": "Client Services", "ever_employed": 463, "currently_active": 265, "total_left": 198, "attrition_rate_pct": 42.8}, {"department_name": "Technology", "ever_employed": 408, "currently_active": 259, "total_left": 149, "attrition_rate_pct": 36.5}, {"department_name": "Operations", "ever_employed": 371, "currently_active": 274, "total_left": 97, "attrition_rate_pct": 26.1}, {"department_name": "People & Culture", "ever_employed": 118, "currently_active": 90, "total_left": 28, "attrition_rate_pct": 23.7}, {"department_name": "Finance", "ever_employed": 180, "currently_active": 139, "total_left": 41, "attrition_rate_pct": 22.8}, {"department_name": "Risk & Compliance", "ever_employed": 236, "currently_active": 186, "total_left": 50, "attrition_rate_pct": 21.2}], "tenure_bucket": [{"tenure_bucket": "0-6 months", "departures": 54, "sort_key": 0}, {"tenure_bucket": "6-12 months", "departures": 85, "sort_key": 6}, {"tenure_bucket": "1-2 years", "departures": 120, "sort_key": 12}, {"tenure_bucket": "2-4 years", "departures": 175, "sort_key": 24}, {"tenure_bucket": "4+ years", "departures": 249, "sort_key": 48}], "satisfaction_band": [{"satisfaction_band": "1 - Very Low", "employees": 130, "attrition_rate_pct": 43.1}, {"satisfaction_band": "2 - Low", "employees": 534, "attrition_rate_pct": 35.6}, {"satisfaction_band": "3 - Moderate", "employees": 813, "attrition_rate_pct": 32.8}, {"satisfaction_band": "4 - High", "employees": 301, "attrition_rate_pct": 31.6}, {"satisfaction_band": "5 - Very High", "employees": 271, "attrition_rate_pct": 27.7}], "overtime_by_dept": [{"department_name": "Client Services", "overtime_flag": "No", "attrition_rate_pct": 39.9}, {"department_name": "Client Services", "overtime_flag": "Yes", "attrition_rate_pct": 50.4}, {"department_name": "Finance", "overtime_flag": "No", "attrition_rate_pct": 23.5}, {"department_name": "Finance", "overtime_flag": "Yes", "attrition_rate_pct": 18.5}, {"department_name": "Operations", "overtime_flag": "No", "attrition_rate_pct": 25.6}, {"department_name": "Operations", "overtime_flag": "Yes", "attrition_rate_pct": 29.4}, {"department_name": "People & Culture", "overtime_flag": "No", "attrition_rate_pct": 23.8}, {"department_name": "People & Culture", "overtime_flag": "Yes", "attrition_rate_pct": 23.5}, {"department_name": "Risk & Compliance", "overtime_flag": "No", "attrition_rate_pct": 19.9}, {"department_name": "Risk & Compliance", "overtime_flag": "Yes", "attrition_rate_pct": 28.6}, {"department_name": "Sales & Business Dev", "overtime_flag": "No", "attrition_rate_pct": 43.9}, {"department_name": "Sales & Business Dev", "overtime_flag": "Yes", "attrition_rate_pct": 44.2}, {"department_name": "Technology", "overtime_flag": "No", "attrition_rate_pct": 35.3}, {"department_name": "Technology", "overtime_flag": "Yes", "attrition_rate_pct": 39.5}], "promotion_retention": [{"was_ever_promoted": 0, "employees": 1602, "attrition_rate_pct": 36.0}, {"was_ever_promoted": 1, "employees": 447, "attrition_rate_pct": 23.9}], "overall": {"active": 1366, "total_ever": 2049, "avg_satisfaction": 3.41, "avg_salary": 54667.0, "cumulative_attrition_pct": 36.2}};
+const pct = (v) => v.toFixed(1) + '%';
+const num = (v) => v.toLocaleString('en-GB');
+const gbp = (v) => '£' + Math.round(v).toLocaleString('en-GB');
+
+const tooltip = document.getElementById('tooltip');
+function showTooltip(evt, html) { tooltip.innerHTML = html; tooltip.style.opacity = 1; tooltip.style.left = (evt.pageX+14)+'px'; tooltip.style.top = (evt.pageY-10)+'px'; }
+function hideTooltip() { tooltip.style.opacity = 0; }
+
+function renderKPIs() {
+  const o = DATA.overall;
+  const cards = [
+    ['Currently active', num(o.active)],
+    ['Total ever employed', num(o.total_ever)],
+    ['Cumulative attrition', pct(o.cumulative_attrition_pct)],
+    ['Avg. satisfaction (active)', o.avg_satisfaction + ' / 5'],
+    ['Avg. salary (active)', gbp(o.avg_salary)],
+  ];
+  document.getElementById('kpiRow').innerHTML = cards.map(([l,v]) => `<div class="kpi-card"><div class="label">${l}</div><div class="value">${v}</div></div>`).join('');
+}
+
+function renderLine(containerId, tableId, rows, xKey, yKey, yFmt, color) {
+  const container = document.getElementById(containerId);
+  const w = container.clientWidth || 560, h = 220, padL = 44, padR = 12, padT = 10, padB = 26;
+  const maxV = Math.max(...rows.map(r=>r[yKey])) * 1.08;
+  const minV = Math.min(...rows.map(r=>r[yKey])) * 0.96;
+  const x = (i) => padL + i/(rows.length-1) * (w-padL-padR);
+  const y = (v) => padT + (1 - (v-minV)/(maxV-minV)) * (h-padT-padB);
+  let svg = `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMinYMin meet">`;
+  for (let i=0;i<=3;i++){ const gy = padT+i/3*(h-padT-padB); svg += `<line x1="${padL}" y1="${gy}" x2="${w-padR}" y2="${gy}" class="gridline"/>`; svg += `<text x="${padL-6}" y="${gy+3}" text-anchor="end">${yFmt(maxV-(maxV-minV)*i/3)}</text>`; }
+  const step = Math.ceil(rows.length/8);
+  rows.forEach((r,i) => { if (i % step === 0) svg += `<text x="${x(i)}" y="${h-8}" text-anchor="middle">${r[xKey].slice(2)}</text>`; });
+  const pts = rows.map((r,i) => `${x(i)},${y(r[yKey])}`).join(' ');
+  svg += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  rows.forEach((r,i) => { if (i % 2 === 0) svg += `<circle cx="${x(i)}" cy="${y(r[yKey])}" r="2.5" fill="${color}" class="pt" data-x="${r[xKey]}" data-y="${r[yKey]}"/>`; });
+  svg += `<line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" class="axis-line"/></svg>`;
+  container.innerHTML = svg;
+  container.querySelectorAll('.pt').forEach(pt => {
+    pt.addEventListener('mousemove', e => showTooltip(e, `<strong>${pt.dataset.x}</strong><br>${yFmt(+pt.dataset.y)}`));
+    pt.addEventListener('mouseleave', hideTooltip);
+  });
+  const table = document.getElementById(tableId);
+  table.innerHTML = '<tr><th>Period</th><th>Value</th></tr>' + rows.map(r=>`<tr><td>${r[xKey]}</td><td>${yFmt(r[yKey])}</td></tr>`).join('');
+}
+
+function renderBarChart(containerId, tableId, rows, labelKey, valueKey, colorFn, valueFmt) {
+  const container = document.getElementById(containerId);
+  const w = container.clientWidth || 500;
+  const barH = 20, gap = 11, padL = 140, padR = 55, padT = 6;
+  const h = rows.length * (barH + gap) + padT;
+  const maxV = Math.max(...rows.map(r => r[valueKey])) * 1.15;
+  const x = (v) => padL + (v / maxV) * (w - padL - padR);
+  let svg = `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMinYMin meet">`;
+  rows.forEach((r, i) => {
+    const yPos = padT + i * (barH + gap);
+    const bw = x(r[valueKey]) - padL;
+    svg += `<text x="${padL - 8}" y="${yPos + barH/2 + 4}" text-anchor="end" class="bar-label">${r[labelKey]}</text>`;
+    svg += `<rect x="${padL}" y="${yPos}" width="${Math.max(bw,2)}" height="${barH}" rx="4" fill="${colorFn(r,i)}" class="bar" data-label="${r[labelKey]}" data-val="${r[valueKey]}"/>`;
+    svg += `<text x="${x(r[valueKey]) + 6}" y="${yPos + barH/2 + 4}" class="bar-label">${valueFmt(r[valueKey])}</text>`;
+  });
+  svg += `</svg>`;
+  container.innerHTML = svg;
+  container.querySelectorAll('.bar').forEach(bar => {
+    bar.addEventListener('mousemove', e => showTooltip(e, `<strong>${bar.dataset.label}</strong><br>${valueFmt(+bar.dataset.val)}`));
+    bar.addEventListener('mouseenter', () => bar.style.opacity = 0.85);
+    bar.addEventListener('mouseleave', () => { bar.style.opacity = 1; hideTooltip(); });
+  });
+  const table = document.getElementById(tableId);
+  const otherKeys = Object.keys(rows[0]).filter(k => k !== labelKey && k !== valueKey);
+  table.innerHTML = '<tr><th>'+labelKey+'</th><th>'+valueKey+'</th>' + otherKeys.map(k=>`<th>${k}</th>`).join('') + '</tr>' +
+    rows.map(r => '<tr><td>'+r[labelKey]+'</td><td>'+valueFmt(r[valueKey])+'</td>' + otherKeys.map(k=>`<td>${r[k]}</td>`).join('') + '</tr>').join('');
+}
+
+function renderGroupedBar() {
+  const container = document.getElementById('c-overtime');
+  const depts = [...new Set(DATA.overtime_by_dept.map(d=>d.department_name))];
+  const w = container.clientWidth || 1000, h = 230, padL = 40, padR = 10, padT = 10, padB = 46;
+  const maxV = Math.max(...DATA.overtime_by_dept.map(d=>d.attrition_rate_pct)) * 1.15;
+  const groupW = (w-padL-padR) / depts.length;
+  const barW = groupW * 0.32;
+  const y = (v) => padT + (1 - v/maxV) * (h-padT-padB);
+  let svg = `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMinYMin meet">`;
+  for (let i=0;i<=3;i++){ const gy = padT+i/3*(h-padT-padB); svg += `<line x1="${padL}" y1="${gy}" x2="${w-padR}" y2="${gy}" class="gridline"/>`; }
+  depts.forEach((dept, i) => {
+    const gx = padL + i*groupW + groupW/2;
+    const no = DATA.overtime_by_dept.find(d=>d.department_name===dept && d.overtime_flag==='No');
+    const yes = DATA.overtime_by_dept.find(d=>d.department_name===dept && d.overtime_flag==='Yes');
+    if (no) { const bh=(h-padT-padB)-(y(no.attrition_rate_pct)-padT); svg += `<rect x="${gx-barW-2}" y="${y(no.attrition_rate_pct)}" width="${barW}" height="${bh}" rx="3" fill="var(--s1)" class="gbar" data-d="${dept}" data-t="No overtime" data-v="${no.attrition_rate_pct}"/>`; }
+    if (yes) { const bh=(h-padT-padB)-(y(yes.attrition_rate_pct)-padT); svg += `<rect x="${gx+2}" y="${y(yes.attrition_rate_pct)}" width="${barW}" height="${bh}" rx="3" fill="var(--s2)" class="gbar" data-d="${dept}" data-t="Overtime" data-v="${yes.attrition_rate_pct}"/>`; }
+    svg += `<text x="${gx}" y="${h-30}" text-anchor="middle" style="font-size:9.5px;">${dept.length>14? dept.slice(0,13)+'…':dept}</text>`;
+  });
+  svg += `<line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" class="axis-line"/></svg>`;
+  container.innerHTML = svg;
+  container.querySelectorAll('.gbar').forEach(bar => {
+    bar.addEventListener('mousemove', e => showTooltip(e, `<strong>${bar.dataset.d}</strong><br>${bar.dataset.t}: ${(+bar.dataset.v).toFixed(1)}%`));
+    bar.addEventListener('mouseleave', hideTooltip);
+  });
+  document.getElementById('l-overtime').innerHTML = `<span class="item"><span class="swatch" style="background:var(--s1)"></span>No overtime</span><span class="item"><span class="swatch" style="background:var(--s2)"></span>Overtime</span>`;
+  const table = document.getElementById('t-overtime');
+  table.innerHTML = '<tr><th>Department</th><th>No overtime</th><th>Overtime</th></tr>' +
+    depts.map(dept => { const no=DATA.overtime_by_dept.find(d=>d.department_name===dept&&d.overtime_flag==='No'); const yes=DATA.overtime_by_dept.find(d=>d.department_name===dept&&d.overtime_flag==='Yes');
+      return `<tr><td>${dept}</td><td>${no?no.attrition_rate_pct+'%':'—'}</td><td>${yes?yes.attrition_rate_pct+'%':'—'}</td></tr>`; }).join('');
+}
+
+function wireToggles() {
+  document.querySelectorAll('.table-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const table = document.getElementById(btn.dataset.target);
+      table.classList.toggle('show');
+      const chartWrap = btn.closest('figure').querySelector('.chart-svg-wrap');
+      if (table.classList.contains('show')) { chartWrap.classList.add('hide'); btn.textContent = btn.textContent.replace('View as table','Show chart').replace('Table','Chart'); }
+      else { chartWrap.classList.remove('hide'); btn.textContent = btn.textContent.replace('Show chart','View as table').replace('Chart','Table'); }
+    });
+  });
+}
+
+const deptColorMap = {};
+['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)','var(--s7)'].forEach((c,i) => deptColorMap[DATA.attrition_by_dept[i].department_name] = c);
+
+renderKPIs();
+renderLine('c-headcount', 't-headcount', DATA.headcount_trend, 'period', 'headcount', num, 'var(--s1)');
+renderBarChart('c-dept', 't-dept', DATA.attrition_by_dept, 'department_name', 'attrition_rate_pct', (r)=>deptColorMap[r.department_name], pct);
+renderBarChart('c-tenure', 't-tenure', DATA.tenure_bucket, 'tenure_bucket', 'departures', ()=>'var(--s3)', num);
+renderBarChart('c-sat', 't-sat', DATA.satisfaction_band, 'satisfaction_band', 'attrition_rate_pct', ()=>'var(--s4)', pct);
+renderBarChart('c-promo', 't-promo', DATA.promotion_retention.map(r=>({label: r.was_ever_promoted? 'Ever promoted':'Never promoted', attrition_rate_pct:r.attrition_rate_pct, employees:r.employees})), 'label', 'attrition_rate_pct', (r)=> r.label==='Ever promoted' ? 'var(--s3)' : 'var(--s5)', pct);
+renderGroupedBar();
+wireToggles();
+</script>
+</body>
+</html>
